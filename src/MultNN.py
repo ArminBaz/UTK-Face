@@ -43,8 +43,9 @@ class highLevelNN(nn.Module):
 
 # Low level feature extraction module
 class lowLevelNN(nn.Module):
-    def __init__(self, num_out):
+    def __init__(self, num_out, age=False):
         super(lowLevelNN, self).__init__()
+        self.age = age
         self.conv1 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, padding=1)
         self.fc1 = nn.Linear(in_features=2048, out_features=256)
@@ -60,8 +61,10 @@ class lowLevelNN(nn.Module):
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         x = self.fc4(x)
-
-        return x
+        if self.age == True:
+            return F.relu(x)
+        else:
+            return x
 
 
 class TridentNN(nn.Module):
@@ -70,9 +73,9 @@ class TridentNN(nn.Module):
         # Construct the high level neural network
         self.CNN = highLevelNN()
         # Construct the low level neural networks
-        self.ageNN = lowLevelNN(num_out=num_age)
-        self.genNN = lowLevelNN(num_out=num_gen)
-        self.ethNN = lowLevelNN(num_out=num_eth)
+        self.ageNN = lowLevelNN(num_out=1, age=True)
+        self.genNN = lowLevelNN(num_out=num_gen, age=False)
+        self.ethNN = lowLevelNN(num_out=num_eth, age=False)
 
     def forward(self, x):
         x = self.CNN(x)
@@ -80,11 +83,11 @@ class TridentNN(nn.Module):
         gen = self.genNN(x)
         eth = self.ethNN(x)
 
-        return (age, gen, eth)
+        return age, gen, eth
 
 if __name__ == '__main__':
     print('Testing out Multi-Label NN')
     mlNN = TridentNN(10, 10, 10)
-    input = torch.randn(1, 1, 48, 48)
+    input = torch.randn(64, 1, 48, 48)
     y = mlNN(input)
-    print(len(y))
+    print(y[0].shape)

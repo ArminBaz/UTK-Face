@@ -41,7 +41,7 @@ class UTKDataset(Dataset):
         data = self.transform(data)
         
         # load the labels into a list and convert to tensors
-        labels = torch.tensor([self.age_label[index], self.gender_label[index], self.eth_label[index]])
+        labels = torch.tensor((self.age_label[index], self.gender_label[index], self.eth_label[index]))
         
         # return data labels
         return data, labels
