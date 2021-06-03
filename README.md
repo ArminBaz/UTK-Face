@@ -12,7 +12,12 @@ Within this folder you will find two custom modules
 
 ## Trident Neural Network
 The trident neural network is named such because it takes the shape of an upside down trident.
-We are trying to predict three different things with each image age, gender, and ethnicity. 
-I first run the image through a high-level feature extractor that mimics the architecture of the famed VGG network. After the high-level features are extracted, they are sent through three seperate branches for low-level feature extraction and classification.
+We are trying to predict three different things with each image age, gender, and ethnicity.
+
+
+The steps for the TNN are as follows:
+1. I run the image through the high-level feature extraction layers that closely mimic the architecture of the VGG network.
+2. The high-level features are sent through three seperate branches (hence the trident).
+3. Within each branch low-level features are extracted followed by fully connected layers for classification.
 
 As you can assume the three different branches are for the three predictions.

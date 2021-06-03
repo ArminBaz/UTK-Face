@@ -19,7 +19,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 # Custom imports
 from CustomUTK import UTKDataset
-from MultNN import MultLabelNN
+from MultNN import TridentNN
 
 # Read in the dataframe
 dataFrame = pd.read_csv('../data/age_gender.gz', compression='gzip')

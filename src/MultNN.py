@@ -64,9 +64,9 @@ class lowLevelNN(nn.Module):
         return x
 
 
-class MultLabelNN(nn.Module):
+class TridentNN(nn.Module):
     def __init__(self, num_age, num_gen, num_eth):
-        super(MultLabelNN, self).__init__()
+        super(TridentNN, self).__init__()
         # Construct the high level neural network
         self.CNN = highLevelNN()
         # Construct the low level neural networks
@@ -84,7 +84,7 @@ class MultLabelNN(nn.Module):
 
 if __name__ == '__main__':
     print('Testing out Multi-Label NN')
-    mlNN = MultLabelNN(10, 10, 10)
+    mlNN = TridentNN(10, 10, 10)
     input = torch.randn(1, 1, 48, 48)
     y = mlNN(input)
     print(len(y))
