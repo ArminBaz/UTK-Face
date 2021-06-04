@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 # torch imports
 import torch
-from torch import nn
+from torch import nn, pairwise_distance
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from torch.utils.data import Dataset
@@ -23,6 +23,16 @@ from torch.utils.tensorboard import SummaryWriter
 from CustomUTK import UTKDataset
 from MultNN import TridentNN
 
+
+'''
+    Function to read in the data
+    Inputs: None
+
+    Outputs:
+     - train_loader : Custom PyTorch DataLoader for training data from UTK Face Dataset
+     - test_loader : Custom PyTorch DataLoader for testing UTK Face Dataset
+     - class_nums : Dictionary that stores the number of unique variables for each class (used in NN)
+'''
 def read_data():
     # Read in the dataframe
     dataFrame = pd.read_csv('../data/age_gender.gz', compression='gzip')
@@ -65,6 +75,15 @@ def read_data():
 
     return train_loader, test_loader, class_nums
 
+
+'''
+   Function to train the model
+
+   Inputs:
+     - trainloader : PyTorch DataLoader for training data
+     - model : NeuralNetwork model to train
+     - hyperparameters : Dictionary containing the hyperparameters (learning rate & number of epochs)
+'''
 def train(trainloader, model, hyperparameters):
     # Load hyperparameters
     learning_rate = hyperparameters['learning_rate']
@@ -76,7 +95,7 @@ def train(trainloader, model, hyperparameters):
     eth_loss = nn.CrossEntropyLoss()
 
     # Define optimizer
-    opt = torch.optim.Adam(model.params(), lr=learning_rate)
+    opt = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     # Initialize the summaryWriter
     # writer = SummaryWriter(f'LR: {learning_rate}')
@@ -88,10 +107,9 @@ def train(trainloader, model, hyperparameters):
         correct, total = 0,0
         # Loop through dataLoader
         for _, (X,y) in loop:
-            # unpack y to get true age, eth, and gen values
-            age = y[:,0]
-            gen = y[:,1]
-            eth = y[:,2]
+            # Unpack y to get true age, eth, and gen values
+            # Have to do some special changes to age label to make it compatible with NN output and Loss function
+            age, gen, eth = y[:,0].resize_(len(y[:,0]),1).float(), y[:,1], y[:,2]
 
             pred = model(X)          # Forward pass
             loss = age_loss(pred[0],age) + gen_loss(pred[1],gen) + eth_loss(pred[2],eth)   # Loss calculation
@@ -108,10 +126,19 @@ def train(trainloader, model, hyperparameters):
             loop.set_postfix(loss = loss.item())
 
 
+'''
+    Function to test the trained model
 
-def test(testloader):
+    Inputs:
+      - testloader : PyTorch DataLoader containing the test dataset
+      - modle : Trained NeuralNetwork
+'''
+def test(testloader, model):
     pass
 
+'''
+    Main function that stiches everything together
+'''
 def main():
     # Define the list of hyperparameters
     hyperparams = {'learning_rate':0.001, 'epochs':50, }
