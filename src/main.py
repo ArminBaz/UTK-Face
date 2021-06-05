@@ -104,7 +104,7 @@ def train(trainloader, model, hyperparameters):
     for epoch in range(num_epoch):
         # Construct tqdm loop to keep track of training
         loop = tqdm(enumerate(trainloader), total=len(trainloader), leave=False)
-        correct, total = 0,0
+        correct, total, epoch_loss, epoch_acc = 0,0 = 0,0
         # Loop through dataLoader
         for _, (X,y) in loop:
             # Unpack y to get true age, eth, and gen values
@@ -121,9 +121,24 @@ def train(trainloader, model, hyperparameters):
             # Gradient Descent
             opt.step()               # Apply updates
 
+            # Update epoch loss
+            epoch_loss += age_loss(pred[0],age)
+
+            # Update epoch accuracy
+            
+
             # Update progress bar
             loop.set_description(f"Epoch [{epoch+1}/{num_epoch}]")
             loop.set_postfix(loss = loss.item())
+
+    # Update epoch loss
+    epoch_loss/=total
+
+    # Update epoch accuracy
+    epoch_acc = correct/total
+
+    # print out accuracy and loss for epoch
+    print(f'Epoch : {epoch+1}/{num_epoch},    Age Loss : {epoch_loss},    Gender/Ethnicity Accuracy : {epoch_acc}')
 
 
 '''
