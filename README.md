@@ -14,8 +14,11 @@ This repo contains a multi-output CNN that is capable of predicting the age, gen
 * tqdm - 4.47.0
 
 ## Usage
-To run the script navigate to '''/src''' and run '''main.py''' with the following command
+To run the script navigate to '/src' and run 'main.py' with the following command
+
+''' sh
     python main.py
+'''
 
 ## Data
 The data is stored in a gzip format to make it easier to download and work with
