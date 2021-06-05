@@ -7,7 +7,6 @@
     low-level neural network for each classification desired (gender, age, ethnicity).
 '''
 
-import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
@@ -15,8 +14,6 @@ from tqdm import tqdm
 import torch
 from torch import nn, pairwise_distance
 from torch.utils.data import DataLoader
-import torch.nn.functional as F
-from torch.utils.data import Dataset
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 # Custom imports
@@ -106,7 +103,7 @@ def train(trainloader, model, hyperparameters):
     for epoch in range(num_epoch):
         # Construct tqdm loop to keep track of training
         loop = tqdm(enumerate(trainloader), total=len(trainloader), leave=False)
-        gen_correct, eth_correct, total, epoch_loss = 0,0,0,0
+        gen_correct, eth_correct, total, age_Loss = 0,0,0,0    # capital l on age to not get confused with loss function
         # Loop through dataLoader
         for _, (X,y) in loop:
             # Unpack y to get true age, eth, and gen values
@@ -124,11 +121,11 @@ def train(trainloader, model, hyperparameters):
             opt.step()               # Apply updates
 
             # Update epoch loss
-            epoch_loss += age_loss(pred[0],age)
+            age_Loss += age_loss(pred[0],age)
 
             # Update num correct and total
-            gen_correct = (pred[1].argmax(1) == gen).type(torch.float).sum().item()
-            eth_correct = (pred[2].argmax(1) == eth).type(torch.float).sum().item()
+            gen_correct += (pred[1].argmax(1) == gen).type(torch.float).sum().item()
+            eth_correct += (pred[2].argmax(1) == eth).type(torch.float).sum().item()
 
             total += len(y)
 
@@ -136,14 +133,14 @@ def train(trainloader, model, hyperparameters):
             loop.set_description(f"Epoch [{epoch+1}/{num_epoch}]")
             loop.set_postfix(loss = loss.item())
 
-    # Update epoch loss
-    epoch_loss/=total
+    # Update age loss
+    age_Loss/=total
 
     # Update epoch accuracy
     gen_acc, eth_acc = gen_correct/total, eth_correct/total
 
     # print out accuracy and loss for epoch
-    print(f'Epoch : {epoch+1}/{num_epoch},    Age Loss : {epoch_loss},    Gender Accuracy : {gen_acc*100},    Ethnicity Accuracy : {eth_acc*100}')
+    print(f'Epoch : {epoch+1}/{num_epoch},    Age Loss : {age_Loss},    Gender Accuracy : {gen_acc*100},    Ethnicity Accuracy : {eth_acc*100}\n')
 
 
 '''
@@ -157,7 +154,29 @@ def train(trainloader, model, hyperparameters):
       - Prints out test accuracy for gender and ethnicity and loss for age
 '''
 def test(testloader, model):
-    pass
+    size = len(testloader.dataset)
+    # put the moel in evaluation mode so we aren't storing anything in the graph
+    model.eval()
+
+    age_Loss, gen_acc, eth_acc = 0, 0, 0  # capital L on age to not get confused with loss function
+
+    age_loss = nn.MSELoss()
+
+    with torch.no_grad():
+        for X, y in testloader:
+            age, gen, eth = y[:,0].resize_(len(y[:,0]),1).float(), y[:,1], y[:,2]
+            pred = model(X)
+
+            age_Loss += age_loss(pred[0],age)
+
+            gen_acc += (pred[1].argmax(1) == gen).type(torch.float).sum().item()
+            eth_acc += (pred[2].argmax(1) == eth).type(torch.float).sum().item()
+
+    age_Loss /= size
+    gen_acc /= size
+    eth_acc /= size
+
+    print(f"Age loss : {age_Loss}%,     Gender Accuracy : {gen_acc},    Ethnicity Accuracy : {eth_acc}\n")
 
 '''
     Main function that stiches everything together
@@ -174,6 +193,8 @@ def main():
 
     # Train the model
     train(train_loader, tridentNN, hyperparams)
+    print('\n \nFinished training, running the testing script...')
+    test(test_loader, tridentNN)
 
 if __name__ == '__main__':
     main()
