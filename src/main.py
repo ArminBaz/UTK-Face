@@ -83,6 +83,8 @@ def read_data():
      - trainloader : PyTorch DataLoader for training data
      - model : NeuralNetwork model to train
      - hyperparameters : Dictionary containing the hyperparameters (learning rate & number of epochs)
+
+    Outputs: Nothing
 '''
 def train(trainloader, model, hyperparameters):
     # Load hyperparameters
@@ -104,7 +106,7 @@ def train(trainloader, model, hyperparameters):
     for epoch in range(num_epoch):
         # Construct tqdm loop to keep track of training
         loop = tqdm(enumerate(trainloader), total=len(trainloader), leave=False)
-        correct, total, epoch_loss, epoch_acc = 0,0 = 0,0
+        gen_correct, eth_correct, total, epoch_loss = 0,0 = 0,0
         # Loop through dataLoader
         for _, (X,y) in loop:
             # Unpack y to get true age, eth, and gen values
@@ -124,8 +126,11 @@ def train(trainloader, model, hyperparameters):
             # Update epoch loss
             epoch_loss += age_loss(pred[0],age)
 
-            # Update epoch accuracy
-            
+            # Update num correct and total
+            gen_correct = (pred[1].argmax(1) == gen).type(torch.float).sum().item()
+            eth_correct = (pred[2].argmax(1) == eth).type(torch.float).sum().item()
+
+            total += len(y)
 
             # Update progress bar
             loop.set_description(f"Epoch [{epoch+1}/{num_epoch}]")
@@ -135,10 +140,10 @@ def train(trainloader, model, hyperparameters):
     epoch_loss/=total
 
     # Update epoch accuracy
-    epoch_acc = correct/total
+    gen_acc, eth_acc = gen_correct/total, eth_correct/total
 
     # print out accuracy and loss for epoch
-    print(f'Epoch : {epoch+1}/{num_epoch},    Age Loss : {epoch_loss},    Gender/Ethnicity Accuracy : {epoch_acc}')
+    print(f'Epoch : {epoch+1}/{num_epoch},    Age Loss : {epoch_loss},    Gender Accuracy : {gen_acc*100},    Ethnicity Accuracy : {eth_acc*100}')
 
 
 '''
@@ -147,6 +152,9 @@ def train(trainloader, model, hyperparameters):
     Inputs:
       - testloader : PyTorch DataLoader containing the test dataset
       - modle : Trained NeuralNetwork
+    
+    Outputs:
+      - Prints out test accuracy for gender and ethnicity and loss for age
 '''
 def test(testloader, model):
     pass
