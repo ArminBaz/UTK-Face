@@ -106,7 +106,7 @@ def train(trainloader, model, hyperparameters):
     for epoch in range(num_epoch):
         # Construct tqdm loop to keep track of training
         loop = tqdm(enumerate(trainloader), total=len(trainloader), leave=False)
-        gen_correct, eth_correct, total, epoch_loss = 0,0 = 0,0
+        gen_correct, eth_correct, total, epoch_loss = 0,0,0,0
         # Loop through dataLoader
         for _, (X,y) in loop:
             # Unpack y to get true age, eth, and gen values
