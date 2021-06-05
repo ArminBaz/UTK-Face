@@ -1,6 +1,21 @@
 # UTK-Face Project
 This is a project based on the UTK Face dataset, luckily someone was nice enough to clean up the dataset
 and make it publicly available here: https://www.kaggle.com/nipunarora8/age-gender-and-ethnicity-face-data-csv
+<br>
+<br>
+This repo contains a multi-output CNN that is capable of predicting the age, gender, and ethnicity of a person from a photo.
+
+## Dependencies
+* python - 3.7.4
+* pandas - 1.0.5
+* pytorch - 1.4.0
+* torchvision - 0.5.0
+* tensorboard - 2.4.1
+* tqdm - 4.47.0
+
+## Usage
+To run the script navigate to '''/src''' and run '''main.py''' with the following command
+    python main.py
 
 ## Data
 The data is stored in a gzip format to make it easier to download and work with
