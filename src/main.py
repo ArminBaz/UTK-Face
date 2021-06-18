@@ -97,21 +97,15 @@ def read_data():
 
     Outputs: Nothing
 '''
-def train(trainloader, model, hyperparameters):
+def train(trainloader, model, opt, num_epoch):
     # Configure device
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-    # Load hyperparameters
-    learning_rate = hyperparameters['learning_rate']
-    num_epoch = hyperparameters['epochs']
+    model.to(device)
 
     # Define loss functions
     age_loss = nn.CrossEntropyLoss()
     gen_loss = nn.CrossEntropyLoss() # TODO : Explore using Binary Cross Entropy Loss?
     eth_loss = nn.CrossEntropyLoss()
-
-    # Define optimizer
-    opt = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     # Initialize the summaryWriter
     # writer = SummaryWriter(f'LR: {learning_rate}')
@@ -127,6 +121,7 @@ def train(trainloader, model, hyperparameters):
             # Have to do some special changes to age label to make it compatible with NN output and Loss function
             #age, gen, eth = y[:,0].resize_(len(y[:,0]),1).float(), y[:,1], y[:,2]
             age, gen, eth = y[:,0].to(device), y[:,1].to(device), y[:,2].to(device)
+            X = X.to(device)
 
             pred = model(X)          # Forward pass
             loss = age_loss(pred[0],age) + gen_loss(pred[1],gen) + eth_loss(pred[2],eth)   # Loss calculation
@@ -153,7 +148,7 @@ def train(trainloader, model, hyperparameters):
     gen_acc, eth_acc, age_acc = gen_correct/total, eth_correct/total, age_correct/total
 
     # print out accuracy and loss for epoch
-    print(f'Epoch : {epoch+1}/{num_epoch},    Age Accuracy : {age_acc},    Gender Accuracy : {gen_acc*100},    Ethnicity Accuracy : {eth_acc*100}\n')
+    print(f'Epoch : {epoch+1}/{num_epoch},    Age Accuracy : {age_acc*100},    Gender Accuracy : {gen_acc*100},    Ethnicity Accuracy : {eth_acc*100}\n')
 
 
 '''
@@ -169,6 +164,7 @@ def train(trainloader, model, hyperparameters):
 def test(testloader, model):
     # Configure device
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model.to(device)
 
     size = len(testloader.dataset)
     # put the moel in evaluation mode so we aren't storing anything in the graph
@@ -179,6 +175,7 @@ def test(testloader, model):
     with torch.no_grad():
         for X, y in testloader:
             age, gen, eth = y[:,0].to(device), y[:,1].to(device), y[:,2].to(device)
+            X = X.to(device)
             pred = model(X)
 
             age_acc += (pred[0].argmax(1) == age).type(torch.float).sum().item()
@@ -189,7 +186,8 @@ def test(testloader, model):
     gen_acc /= size
     eth_acc /= size
 
-    print(f"Age Accuracy : {age_acc}%,     Gender Accuracy : {gen_acc},    Ethnicity Accuracy : {eth_acc}\n")
+    print(f"Age Accuracy : {age_acc*100}%,     Gender Accuracy : {gen_acc*100},    Ethnicity Accuracy : {eth_acc*100}\n")
+
 
 '''
     Main function that stiches everything together
@@ -204,25 +202,23 @@ def main():
     # Read in the data and store in train and test dataloaders
     train_loader, test_loader, class_nums = read_data()
 
+    # Load the model and optimizer
+    tridentNN = TridentNN(class_nums['age_num'], class_nums['gen_num'], class_nums['eth_num'])
+
+    # Define optimizer
+    opt = torch.optim.Adam(tridentNN.parameters(), lr=args.lr)
+
     # If we are training from scratch
     if args.pt == True:
-        # Define the list of hyperparameters
-        hyperparams = {'learning_rate':args.lr, 'epochs':args.e}
-        
-        # Initialize the TridentNN model
-        tridentNN = TridentNN(class_nums['age_num'], class_nums['gen_num'], class_nums['eth_num'])
-        tridentNN.to(device)
-
         # Train the model
-        train(train_loader, tridentNN, hyperparams)
+        train(train_loader, tridentNN, opt, args.e)
         print('Finished training, running the testing script...\n \n')
         test(test_loader, tridentNN)
     else:
         # Load and test the pre-trained model
-        # tridentNN = load(something)
-        #tridentNN.to(device)
-        #test(test_loader, tridentNN)
-        pass
+        checkpoint = torch.load('/checkpoints/tridentNN_epoch20.pth.tar')
+        tridentNN.load_state_dict(checkpoint['state_dict'])
+        test(test_loader, tridentNN)
 
 if __name__ == '__main__':
     main()
