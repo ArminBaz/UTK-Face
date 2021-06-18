@@ -47,15 +47,16 @@ def read_data():
     # Read in the dataframe
     dataFrame = pd.read_csv('../data/age_gender.gz', compression='gzip')
 
+    # Construct age bins
+    age_bins = [0,10,15,20,25,30,40,50,60,120]
+    age_labels = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    dataFrame['bins'] = pd.cut(dataFrame.age, bins=age_bins, labels=age_labels)
+
     # Split into training and testing
     train_dataFrame, test_dataFrame = train_test_split(dataFrame, test_size=0.2)
 
     # get the number of unique classes for each group
-    '''
-    class_nums = {'age_num':len(dataFrame['age'].unique()), 'eth_num':len(dataFrame['ethnicity'].unique()),
-                  'gen_num':len(dataFrame['gender'].unique())}
-    '''
-    class_nums = {'age_num':1, 'eth_num':len(dataFrame['ethnicity'].unique()),
+    class_nums = {'age_num':len(dataFrame['bins'].unique()), 'eth_num':len(dataFrame['ethnicity'].unique()),
                   'gen_num':len(dataFrame['gender'].unique())}
 
     # Define train and test transforms
@@ -116,7 +117,7 @@ def train(trainloader, model, hyperparameters):
     for epoch in range(num_epoch):
         # Construct tqdm loop to keep track of training
         loop = tqdm(enumerate(trainloader), total=len(trainloader), leave=False)
-        gen_correct, eth_correct, total, age_Loss = 0,0,0,0    # capital l on age to not get confused with loss function
+        gen_correct, eth_correct, age_correct,total = 0,0,0,0    # capital l on age to not get confused with loss function
         # Loop through dataLoader
         for _, (X,y) in loop:
             # Unpack y to get true age, eth, and gen values
@@ -133,10 +134,8 @@ def train(trainloader, model, hyperparameters):
             # Gradient Descent
             opt.step()               # Apply updates
 
-            # Update epoch loss
-            age_Loss += age_loss(pred[0],age)
-
             # Update num correct and total
+            age_correct += (pred[1].argmax(1) == age).type(torch.float).sum().item()
             gen_correct += (pred[1].argmax(1) == gen).type(torch.float).sum().item()
             eth_correct += (pred[2].argmax(1) == eth).type(torch.float).sum().item()
 
@@ -146,14 +145,11 @@ def train(trainloader, model, hyperparameters):
             loop.set_description(f"Epoch [{epoch+1}/{num_epoch}]")
             loop.set_postfix(loss = loss.item())
 
-    # Update age loss
-    age_Loss/=total
-
     # Update epoch accuracy
-    gen_acc, eth_acc = gen_correct/total, eth_correct/total
+    gen_acc, eth_acc, age_acc = gen_correct/total, eth_correct/total, age_correct/total
 
     # print out accuracy and loss for epoch
-    print(f'Epoch : {epoch+1}/{num_epoch},    Age Loss : {age_Loss},    Gender Accuracy : {gen_acc*100},    Ethnicity Accuracy : {eth_acc*100}\n')
+    print(f'Epoch : {epoch+1}/{num_epoch},    Age Accuracy : {age_acc},    Gender Accuracy : {gen_acc*100},    Ethnicity Accuracy : {eth_acc*100}\n')
 
 
 '''

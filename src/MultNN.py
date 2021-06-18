@@ -42,7 +42,7 @@ class highLevelNN(nn.Module):
 
 # Low level feature extraction module
 class lowLevelNN(nn.Module):
-    def __init__(self, num_out, age=False):
+    def __init__(self, num_out):
         super(lowLevelNN, self).__init__()
         self.age = age
         self.conv1 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1)
@@ -60,10 +60,8 @@ class lowLevelNN(nn.Module):
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         x = self.fc4(x)
-        if self.age == True:
-            return F.relu(x)
-        else:
-            return x
+        
+        return x
 
 
 class TridentNN(nn.Module):
@@ -72,9 +70,9 @@ class TridentNN(nn.Module):
         # Construct the high level neural network
         self.CNN = highLevelNN()
         # Construct the low level neural networks
-        self.ageNN = lowLevelNN(num_out=1, age=True)
-        self.genNN = lowLevelNN(num_out=num_gen, age=False)
-        self.ethNN = lowLevelNN(num_out=num_eth, age=False)
+        self.ageNN = lowLevelNN(num_out=num_age)
+        self.genNN = lowLevelNN(num_out=num_gen)
+        self.ethNN = lowLevelNN(num_out=num_eth)
 
     def forward(self, x):
         x = self.CNN(x)

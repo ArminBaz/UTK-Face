@@ -26,7 +26,7 @@ class UTKDataset(Dataset):
         self.data = arr
         
         # get the age, gender, and ethnicity label arrays
-        self.age_label = np.array(dataFrame.age[:])
+        self.age_label = np.array(dataFrame.bins[:])         # Note : Changed dataFrame.age to dataFrame.bins
         self.gender_label = np.array(dataFrame.gender[:])
         self.eth_label = np.array(dataFrame.ethnicity[:])
     
