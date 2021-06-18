@@ -103,7 +103,7 @@ def train(trainloader, model, hyperparameters):
     num_epoch = hyperparameters['epochs']
 
     # Define loss functions
-    age_loss = nn.MSELoss()
+    age_loss = nn.CrossEntropyLoss()
     gen_loss = nn.CrossEntropyLoss() # TODO : Explore using Binary Cross Entropy Loss?
     eth_loss = nn.CrossEntropyLoss()
 
@@ -167,25 +167,22 @@ def test(testloader, model):
     # put the moel in evaluation mode so we aren't storing anything in the graph
     model.eval()
 
-    age_Loss, gen_acc, eth_acc = 0, 0, 0  # capital L on age to not get confused with loss function
-
-    age_loss = nn.MSELoss()
+    age_acc, gen_acc, eth_acc = 0, 0, 0  # capital L on age to not get confused with loss function
 
     with torch.no_grad():
         for X, y in testloader:
             age, gen, eth = y[:,0].resize_(len(y[:,0]),1).float(), y[:,1], y[:,2]
             pred = model(X)
 
-            age_Loss += age_loss(pred[0],age)
-
+            age_acc += (pred[0].argmax(1) == age).type(torch.float).sum().item()
             gen_acc += (pred[1].argmax(1) == gen).type(torch.float).sum().item()
             eth_acc += (pred[2].argmax(1) == eth).type(torch.float).sum().item()
 
-    age_Loss /= size
+    age_acc /= size
     gen_acc /= size
     eth_acc /= size
 
-    print(f"Age loss : {age_Loss}%,     Gender Accuracy : {gen_acc},    Ethnicity Accuracy : {eth_acc}\n")
+    print(f"Age Accuracy : {age_acc}%,     Gender Accuracy : {gen_acc},    Ethnicity Accuracy : {eth_acc}\n")
 
 '''
     Main function that stiches everything together
