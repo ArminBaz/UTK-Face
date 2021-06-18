@@ -98,6 +98,9 @@ def read_data():
     Outputs: Nothing
 '''
 def train(trainloader, model, hyperparameters):
+    # Configure device
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
     # Load hyperparameters
     learning_rate = hyperparameters['learning_rate']
     num_epoch = hyperparameters['epochs']
@@ -122,7 +125,8 @@ def train(trainloader, model, hyperparameters):
         for _, (X,y) in loop:
             # Unpack y to get true age, eth, and gen values
             # Have to do some special changes to age label to make it compatible with NN output and Loss function
-            age, gen, eth = y[:,0].resize_(len(y[:,0]),1).float(), y[:,1], y[:,2]
+            #age, gen, eth = y[:,0].resize_(len(y[:,0]),1).float(), y[:,1], y[:,2]
+            age, gen, eth = y[:,0].to(device), y[:,1].to(device), y[:,2].to(device)
 
             pred = model(X)          # Forward pass
             loss = age_loss(pred[0],age) + gen_loss(pred[1],gen) + eth_loss(pred[2],eth)   # Loss calculation
@@ -163,6 +167,9 @@ def train(trainloader, model, hyperparameters):
       - Prints out test accuracy for gender and ethnicity and loss for age
 '''
 def test(testloader, model):
+    # Configure device
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
     size = len(testloader.dataset)
     # put the moel in evaluation mode so we aren't storing anything in the graph
     model.eval()
@@ -171,7 +178,7 @@ def test(testloader, model):
 
     with torch.no_grad():
         for X, y in testloader:
-            age, gen, eth = y[:,0].resize_(len(y[:,0]),1).float(), y[:,1], y[:,2]
+            age, gen, eth = y[:,0].to(device), y[:,1].to(device), y[:,2].to(device)
             pred = model(X)
 
             age_acc += (pred[0].argmax(1) == age).type(torch.float).sum().item()
@@ -188,6 +195,9 @@ def test(testloader, model):
     Main function that stiches everything together
 '''
 def main():
+    # Configure the device 
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
     # Parse the arguments
     args = parser.parse_args()
 
@@ -201,6 +211,7 @@ def main():
         
         # Initialize the TridentNN model
         tridentNN = TridentNN(class_nums['age_num'], class_nums['gen_num'], class_nums['eth_num'])
+        tridentNN.to(device)
 
         # Train the model
         train(train_loader, tridentNN, hyperparams)
@@ -209,7 +220,9 @@ def main():
     else:
         # Load and test the pre-trained model
         # tridentNN = load(something)
-        test(test_loader, tridentNN)
+        #tridentNN.to(device)
+        #test(test_loader, tridentNN)
+        pass
 
 if __name__ == '__main__':
     main()
