@@ -44,7 +44,6 @@ class highLevelNN(nn.Module):
 class lowLevelNN(nn.Module):
     def __init__(self, num_out):
         super(lowLevelNN, self).__init__()
-        self.age = age
         self.conv1 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, padding=1)
         self.fc1 = nn.Linear(in_features=2048, out_features=256)
