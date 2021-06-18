@@ -17,8 +17,9 @@ This repo contains a multi-output CNN that is capable of predicting the age, gen
 To run the script navigate to `/src` and run `main.py` with the following command
 
 ``` sh
-    python main.py
+    python main.py --num_epochs=e --learning_rate=lr --pre-trained=pt
 ```
+The argument usage should be self explanatory, further information can be found in the main.py file.
 
 ## Data
 The data is stored in a gzip format to make it easier to download and work with

@@ -10,6 +10,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
+import argparse
 # torch imports
 import torch
 from torch import nn
@@ -20,6 +21,18 @@ from torch.utils.tensorboard import SummaryWriter
 from CustomUTK import UTKDataset
 from MultNN import TridentNN
 
+'''
+    Add arguments for argparse
+
+    Arguments:
+     - epochs : (int) Number of epochs to train
+     - lr : (float) Learning rate for the model
+     - pre-trained : (bool) whether or not to load the pre-trained model
+'''
+parser = argparse.ArgumentParser()
+parser.add_argument('-e', '--num_epochs', default=20, type=int, help='(int) number of epochs to train the model')
+parser.add_argument('-lr', '--learning_rate', default=0.001, type=float, help='(float) learning rate of optimizer')
+parser.add_argument('-pt', '--pre-trained', default=True, type=bool, help='(bool) whether or not to load the pre-trained model')
 
 '''
     Function to read in the data
@@ -182,19 +195,28 @@ def test(testloader, model):
     Main function that stiches everything together
 '''
 def main():
-    # Define the list of hyperparameters
-    hyperparams = {'learning_rate':0.001, 'epochs':50, }
-    
+    # Parse the arguments
+    args = parser.parse_args()
+
     # Read in the data and store in train and test dataloaders
     train_loader, test_loader, class_nums = read_data()
-    
-    # Initialize the TridentNN model
-    tridentNN = TridentNN(class_nums['age_num'], class_nums['gen_num'], class_nums['eth_num'])
 
-    # Train the model
-    train(train_loader, tridentNN, hyperparams)
-    print('\n \nFinished training, running the testing script...')
-    test(test_loader, tridentNN)
+    # If we are training from scratch
+    if args.pt == True:
+        # Define the list of hyperparameters
+        hyperparams = {'learning_rate':args.lr, 'epochs':args.e}
+        
+        # Initialize the TridentNN model
+        tridentNN = TridentNN(class_nums['age_num'], class_nums['gen_num'], class_nums['eth_num'])
+
+        # Train the model
+        train(train_loader, tridentNN, hyperparams)
+        print('Finished training, running the testing script...\n \n')
+        test(test_loader, tridentNN)
+    else:
+        # Load and test the pre-trained model
+        # tridentNN = load(something)
+        test(test_loader, tridentNN)
 
 if __name__ == '__main__':
     main()
