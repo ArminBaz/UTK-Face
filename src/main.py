@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 # torch imports
 import torch
-from torch import nn, pairwise_distance
+from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter

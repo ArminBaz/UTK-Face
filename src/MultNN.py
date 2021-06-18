@@ -7,7 +7,6 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch.nn.modules.conv import Conv2d
 
 # High level feature extractor network (Adopted VGG type structure)
 class highLevelNN(nn.Module):
