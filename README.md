@@ -40,3 +40,16 @@ The steps for the TNN are as follows:
 3. Within each branch low-level features are extracted followed by fully connected layers for classification.
 
 As you can assume the three different branches are for the three predictions.
+
+## Test Results
+I got these test results after training the network so that the training accuracy for each task hit 90%. You can see how I did that in the horribly unorganized colab notebook in `/colab/TrainTridentMain.ipynb`.
+
+| Task        | Accuracy      |
+| ----------- | -----------   |
+| Age         | 45.86%        |
+| Gender      | 89.01%        |
+| Ethnicity   | 76.46%        |
+
+As you can see the accuracy is not that great, especially for the age prediction task. My hypothesis is that because  My hypothesis is that predicting age is actually a very difficult task because there is not only variation between how people age from person to person, but different genders and ethnicities show age at different rates too. Therefore, we have both inter and intra variance when it comes to age. <br> <br>
+
+I might revisit this problem in the future by first trying to feedback the gender and ethnicity predictions as one hot vectors into the age prediction branch of the neural network. Or, it might be as simple as using a more powerful method that involves using a better network (ResNet/DenseNet) and/or the use of transfer learning.

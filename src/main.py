@@ -16,7 +16,6 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torch.utils.tensorboard import SummaryWriter
 # Custom imports
 from CustomUTK import UTKDataset
 from MultNN import TridentNN
@@ -33,6 +32,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-e', '--num_epochs', default=20, type=int, help='(int) number of epochs to train the model')
 parser.add_argument('-lr', '--learning_rate', default=0.001, type=float, help='(float) learning rate of optimizer')
 parser.add_argument('-pt', '--pre-trained', default=True, type=bool, help='(bool) whether or not to load the pre-trained model')
+
 
 '''
     Function to read in the data
@@ -93,7 +93,8 @@ def read_data():
    Inputs:
      - trainloader : PyTorch DataLoader for training data
      - model : NeuralNetwork model to train
-     - hyperparameters : Dictionary containing the hyperparameters (learning rate & number of epochs)
+     - opt : Optimizer to train with
+     - num_epoch : How many epochs to train for
 
     Outputs: Nothing
 '''
@@ -104,11 +105,9 @@ def train(trainloader, model, opt, num_epoch):
 
     # Define loss functions
     age_loss = nn.CrossEntropyLoss()
-    gen_loss = nn.CrossEntropyLoss() # TODO : Explore using Binary Cross Entropy Loss?
+    gen_loss = nn.CrossEntropyLoss()
     eth_loss = nn.CrossEntropyLoss()
 
-    # Initialize the summaryWriter
-    # writer = SummaryWriter(f'LR: {learning_rate}')
 
     # Train the model
     for epoch in range(num_epoch):
@@ -119,7 +118,6 @@ def train(trainloader, model, opt, num_epoch):
         for _, (X,y) in loop:
             # Unpack y to get true age, eth, and gen values
             # Have to do some special changes to age label to make it compatible with NN output and Loss function
-            #age, gen, eth = y[:,0].resize_(len(y[:,0]),1).float(), y[:,1], y[:,2]
             age, gen, eth = y[:,0].to(device), y[:,1].to(device), y[:,2].to(device)
             X = X.to(device)
 
@@ -209,7 +207,7 @@ def main():
     opt = torch.optim.Adam(tridentNN.parameters(), lr=args.lr)
 
     # If we are training from scratch
-    if args.pt == True:
+    if args.pt == False:
         # Train the model
         train(train_loader, tridentNN, opt, args.e)
         print('Finished training, running the testing script...\n \n')
